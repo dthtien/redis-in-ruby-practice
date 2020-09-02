@@ -11,7 +11,7 @@ describe 'Client' do
   let(:service) { Client.new }
 
   describe '#get' do
-    it 'handles unexpected number ber of arguments' do
+    xit 'handles unexpected number ber of arguments' do
       assert_command_results [
         ['GET', '(error) ERR wrong number of arguments for \'GET\' command']
       ]
