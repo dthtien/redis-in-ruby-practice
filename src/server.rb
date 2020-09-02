@@ -3,36 +3,46 @@
 require 'socket'
 # accept: This is how you connect to existing socket
 # socket: This is how we created the server in the previous chapter
-
 class Server
   DEFAULT_PORT = 2020
   COMMANDS = [SET = 'SET', GET = 'GET'].freeze
 
   def initialize
     @data_store = {}
+    @clients = []
   end
 
   def execute
     server = TCPServer.new DEFAULT_PORT
     puts "Server start at #{Time.now}"
     loop do
-      client = server.accept
-      puts "New client connect at: #{client}"
-      client_command_with_args = client.gets
+      result = IO.select(@clients + [server])
+      result[0].each do |socket|
+        next @clients << server.accept if socket.is_a? TCPServer
+        next execute_client(socket) if socket.is_a? TCPSocket
 
-      if client_command_with_args &&
-         !client_command_with_args.strip.empty?
-        response = handle_client_command(client_command_with_args)
-        client.puts response
-      else
-        puts "Empty request received from #{client}"
+        raise "Unknown socket type: #{socket}"
       end
-
-      client.close
     end
   end
 
   private
+
+  def execute_client(client)
+    client_command_with_args = client.read_nonblock(1024, exception: false)
+
+    if client_command_with_args.nil?
+      puts 'Found a client at eofm closing and removing'
+      @clients.delete(client)
+    elsif client_command_with_args == :wait_readable
+      # There are nothing to read from the client
+    elsif client_command_with_args.strip.empty?
+      puts "Empty request received from #{client}"
+    else
+      response = handle_client_command(client_command_with_args)
+      client.puts response
+    end
+  end
 
   def handle_client_command(client_command_with_args)
     command_parts = client_command_with_args.split

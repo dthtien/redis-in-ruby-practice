@@ -1,8 +1,10 @@
 # frozen_string_literal: true
+
 require_relative 'spec_helper'
 require_relative 'helpers'
 require_relative '../src/server.rb'
 
+# TODO: implement better test
 describe 'Server' do
   include Helpers
 
@@ -15,8 +17,8 @@ describe 'Server' do
       lsof_result = ''
       with_server do
         lsof_result = `lsof -nP -i4TCP:2020 | grep LISTEN`
+        expect(lsof_result).to match 'ruby'
       end
-      expect(lsof_result).to match 'ruby'
     end
   end
 end
