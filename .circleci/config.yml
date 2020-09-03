@@ -1,0 +1,33 @@
+defaults: &defaults
+  working_directory: ~/buildbox
+  docker:
+    - image: circleci/ruby:2.7.0
+      environment:
+        BUNDLE_PATH: vendor/bundle
+
+version: 2.0
+jobs:
+  # Testing step
+  test:
+    <<: *defaults
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/buildbox
+
+     - run:
+          name: Install Bundler
+          command: gem install bundler
+
+      - run:
+          name: Bundle Install
+          command: bundle check || bundle install --jobs=4 --retry=3 --path vendor/bundle
+
+      - run:
+          name: run test
+          command: bundle exec rspec
+workflows:
+  version: 2
+  run_test:
+    jobs:
+      - test
