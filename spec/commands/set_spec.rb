@@ -11,7 +11,7 @@ describe Commands::Set do
   end
 
   describe '#call' do
-    context 'without presence' do
+    context 'without option' do
       let(:args) { %w[key value] }
       it 'updates data_store correctly' do
         command.call
@@ -19,8 +19,8 @@ describe Commands::Set do
       end
     end
 
-    context 'with presence' do
-      context 'presence is EX' do
+    context 'with single option' do
+      context 'option is EX' do
         context 'when expired time present' do
           let(:args) { %w[key value EX 10] }
 
@@ -33,14 +33,136 @@ describe Commands::Set do
           end
 
           it 'updates expires correctly' do
-            expect(expires['key']).to eq (Time.now.to_f * 1000).to_i + 10
+            expect(expires['key'])
+              .to eq((Time.now.to_f * 1000).to_i + 10 * 1000)
           end
         end
 
         context 'when expired time not found' do
           let(:args) { %w[key value EX] }
+          let(:expires) { { key: Time.now.to_i } }
           it 'raises error' do
             expect { command.call }.to raise_error Commands::Set::ValidateError
+          end
+        end
+      end
+
+      context 'option is PX' do
+        context 'when expired time present' do
+          let(:args) { %w[key value PX 10] }
+
+          before do
+            command.call
+          end
+
+          it 'updates data_store correctly' do
+            expect(data_store['key']).to eq 'value'
+          end
+
+          it 'updates expires correctly' do
+            expect(expires['key']).to eq((Time.now.to_f * 1000).to_i + 10)
+          end
+        end
+
+        context 'when expired time not found' do
+          let(:args) { %w[key value PX] }
+          let(:expires) { { key: Time.now.to_i } }
+          it 'raises error' do
+            expect { command.call }.to raise_error Commands::Set::ValidateError
+          end
+        end
+      end
+    end
+
+    context 'option is NX' do
+      let(:args) { %w[key value NX] }
+      context 'when key does not present' do
+        before do
+          command.call
+        end
+
+        it 'updates data_store correctly' do
+          expect(data_store['key']).to eq 'value'
+        end
+      end
+
+      context 'when key present' do
+        let(:data_store) { { 'key' => 'ahihi' } }
+        it 'return (nil)' do
+          expect(command.call).to eq '(nil)'
+        end
+      end
+    end
+
+    context 'option is XX' do
+      let(:args) { %w[key value XX] }
+      context 'when key present' do
+        let(:data_store) { { 'key' => 'ahihi' } }
+        before do
+          command.call
+        end
+
+        it 'updates data_store correctly' do
+          expect(data_store['key']).to eq 'value'
+        end
+      end
+
+      context 'when key present' do
+        it 'return (nil)' do
+          expect(command.call).to eq '(nil)'
+        end
+      end
+    end
+
+    context 'mix options' do
+      context 'XX with EX' do
+        let(:args) { %w[key value XX EX 10] }
+        context 'when key present' do
+          let(:data_store) { { 'key' => 'ahihi' } }
+          before do
+            command.call
+          end
+
+          it 'updates data_store correctly' do
+            expect(data_store['key']).to eq 'value'
+          end
+
+          it 'updates expires correctly' do
+            expect(expires['key'])
+              .to eq((Time.now.to_f * 1000).to_i + 10 * 1000)
+          end
+        end
+
+        context 'when key present' do
+          it 'return (nil)' do
+            expect(command.call).to eq '(nil)'
+          end
+        end
+      end
+
+      context 'NX with KEEPTTL' do
+        let(:args) { %w[key value KEEPTTL NX] }
+        let(:expires) { { 'key' => Time.now.to_i } }
+        context 'option is NX' do
+          context 'when key does not present' do
+            before do
+              command.call
+            end
+
+            it 'updates data_store correctly' do
+              expect(data_store['key']).to eq 'value'
+            end
+
+            it 'updates expires correctly' do
+              expect(expires['key']).to be_truthy
+            end
+          end
+
+          context 'when key present' do
+            let(:data_store) { { 'key' => 'ahihi' } }
+            it 'return (nil)' do
+              expect(command.call).to eq '(nil)'
+            end
           end
         end
       end
