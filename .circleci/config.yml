@@ -15,7 +15,7 @@ jobs:
       - attach_workspace:
           at: ~/buildbox
 
-     - run:
+      - run:
           name: Install Bundler
           command: gem install bundler
 
