@@ -34,6 +34,10 @@ module Commands
     end
 
     def call
+      unless @args.any?
+        return "(error) ERR wrong number of arguments for 'SET' command"
+      end
+
       key, value = @args.shift(2)
       parse_result = parse_options
       return parse_result unless parse_result.nil?

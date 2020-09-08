@@ -72,47 +72,48 @@ describe Commands::Set do
           end
         end
       end
+
+      context 'option is NX' do
+        let(:args) { %w[key value NX] }
+        context 'when key does not present' do
+          before do
+            command.call
+          end
+
+          it 'updates data_store correctly' do
+            expect(data_store['key']).to eq 'value'
+          end
+        end
+
+        context 'when key present' do
+          let(:data_store) { { 'key' => 'ahihi' } }
+          it 'return (nil)' do
+            expect(command.call).to eq '(nil)'
+          end
+        end
+      end
+
+      context 'option is XX' do
+        let(:args) { %w[key value XX] }
+        context 'when key present' do
+          let(:data_store) { { 'key' => 'ahihi' } }
+          before do
+            command.call
+          end
+
+          it 'updates data_store correctly' do
+            expect(data_store['key']).to eq 'value'
+          end
+        end
+
+        context 'when key present' do
+          it 'return (nil)' do
+            expect(command.call).to eq '(nil)'
+          end
+        end
+      end
     end
 
-    context 'option is NX' do
-      let(:args) { %w[key value NX] }
-      context 'when key does not present' do
-        before do
-          command.call
-        end
-
-        it 'updates data_store correctly' do
-          expect(data_store['key']).to eq 'value'
-        end
-      end
-
-      context 'when key present' do
-        let(:data_store) { { 'key' => 'ahihi' } }
-        it 'return (nil)' do
-          expect(command.call).to eq '(nil)'
-        end
-      end
-    end
-
-    context 'option is XX' do
-      let(:args) { %w[key value XX] }
-      context 'when key present' do
-        let(:data_store) { { 'key' => 'ahihi' } }
-        before do
-          command.call
-        end
-
-        it 'updates data_store correctly' do
-          expect(data_store['key']).to eq 'value'
-        end
-      end
-
-      context 'when key present' do
-        it 'return (nil)' do
-          expect(command.call).to eq '(nil)'
-        end
-      end
-    end
 
     context 'mix options' do
       context 'XX with EX' do
@@ -165,6 +166,13 @@ describe Commands::Set do
             end
           end
         end
+      end
+    end
+
+    context 'without any options' do
+      let(:args) {[]}
+      it 'returns correct error message' do
+        expect(command.call).to eq "(error) ERR wrong number of arguments for 'SET' command"
       end
     end
   end
