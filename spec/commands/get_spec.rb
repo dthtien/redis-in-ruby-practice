@@ -36,4 +36,13 @@ describe Commands::Get do
       expect(command.call).to eq '(nil)'
     end
   end
+
+  context 'without any options' do
+    let(:data_store) { { 'key' => 'value' } }
+    let(:expires) { { 'key' => (Time.now - 3600 * 24).to_f * 1000 } }
+    let(:args) {[]}
+    it 'returns correct error message' do
+      expect(command.call).to eq "(error) ERR wrong number of arguments for 'SET' command"
+    end
+  end
 end

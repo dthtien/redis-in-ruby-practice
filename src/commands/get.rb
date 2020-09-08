@@ -9,6 +9,10 @@ module Commands
     end
 
     def call
+      unless args.any?
+        return "(error) ERR wrong number of arguments for 'SET' command"
+      end
+
       key = args.first
       validating_data(key)
       @data_store.fetch(key, '(nil)')
