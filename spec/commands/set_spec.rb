@@ -34,7 +34,7 @@ describe Commands::Set do
 
           it 'updates expires correctly' do
             expect(expires['key'])
-              .to eq((Time.now.to_f * 1000).to_i + 10 * 1000)
+              .to be_within(10).of((Time.now.to_f * 1000).to_i + 10 * 1000)
           end
         end
 
@@ -60,7 +60,8 @@ describe Commands::Set do
           end
 
           it 'updates expires correctly' do
-            expect(expires['key']).to eq((Time.now.to_f * 1000).to_i + 10)
+            expect(expires['key'])
+              .to be_within(10).of((Time.now.to_f * 1000).to_i + 10)
           end
         end
 
@@ -130,7 +131,7 @@ describe Commands::Set do
 
           it 'updates expires correctly' do
             expect(expires['key'])
-              .to eq((Time.now.to_f * 1000).to_i + 10 * 1000)
+              .to be_within(10).of((Time.now.to_f * 1000).to_i + 10 * 1000)
           end
         end
 
